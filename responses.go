@@ -12,8 +12,12 @@ const (
 	rootResponseName = "QUOTAROOT"
 )
 
+// A quota status.
 type Status struct {
+	// The quota name.
 	Name string
+	// The quota resources. Each resource is indexed by its name and contains its
+	// current usage as well as its limit.
 	Resources map[string][2]uint32
 }
 
@@ -101,12 +105,12 @@ func (r *Response) WriteTo(w *common.Writer) (err error) {
 	return
 }
 
-type Mailbox struct {
+type MailboxRoots struct {
 	Name string
 	Roots []string
 }
 
-func (m *Mailbox) Parse(fields []interface{}) error {
+func (m *MailboxRoots) Parse(fields []interface{}) error {
 	if len(fields) < 1 {
 		return errors.New("No enough arguments")
 	}
@@ -131,7 +135,7 @@ func (m *Mailbox) Parse(fields []interface{}) error {
 	return nil
 }
 
-func (m *Mailbox) Format() (fields []interface{}) {
+func (m *MailboxRoots) Format() (fields []interface{}) {
 	fields = append(fields, m.Name)
 	for _, root := range m.Roots {
 		fields = append(fields, root)
@@ -141,7 +145,7 @@ func (m *Mailbox) Format() (fields []interface{}) {
 
 // A QUOTAROOT response. See RFC 2087 section 5.1.
 type RootResponse struct {
-	Mailboxes chan *Mailbox
+	Mailboxes chan *MailboxRoots
 }
 
 func (r *RootResponse) HandleFrom(hdlr common.RespHandler) error {
@@ -151,7 +155,7 @@ func (r *RootResponse) HandleFrom(hdlr common.RespHandler) error {
 			continue
 		}
 
-		m := &Mailbox{}
+		m := &MailboxRoots{}
 		if err := m.Parse(fields); err != nil {
 			return err
 		}
