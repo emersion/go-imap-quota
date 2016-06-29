@@ -145,7 +145,7 @@ func (m *MailboxRoots) Format() (fields []interface{}) {
 
 // A QUOTAROOT response. See RFC 2087 section 5.1.
 type RootResponse struct {
-	Mailboxes chan *MailboxRoots
+	Mailbox *MailboxRoots
 }
 
 func (r *RootResponse) HandleFrom(hdlr common.RespHandler) error {
@@ -160,21 +160,19 @@ func (r *RootResponse) HandleFrom(hdlr common.RespHandler) error {
 			return err
 		}
 
-		r.Mailboxes <- m
+		r.Mailbox = m
 	}
 
 	return nil
 }
 
 func (r *RootResponse) WriteTo(w *common.Writer) (err error) {
-	for m := range r.Mailboxes {
-		fields := []interface{}{rootResponseName}
-		fields = append(fields, m.Format()...)
+	fields := []interface{}{rootResponseName}
+	fields = append(fields, r.Mailbox.Format()...)
 
-		res := common.NewUntaggedResp(fields)
-		if err = res.WriteTo(w); err != nil {
-			return
-		}
+	res := common.NewUntaggedResp(fields)
+	if err = res.WriteTo(w); err != nil {
+		return
 	}
 
 	return

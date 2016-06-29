@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	setQuotaCommandName = "SETQUOTA"
-	getQuotaCommandName = "GETQUOTA"
-	getQuotaRootCommandName = "GETQUOTAROOT"
+	setCommandName = "SETQUOTA"
+	getCommandName = "GETQUOTA"
+	getRootCommandName = "GETQUOTAROOT"
 )
 
 // The SETQUOTA command. See RFC 2087 section 4.1.
@@ -27,7 +27,7 @@ func (cmd *SetCommand) Command() *common.Command {
 	}
 
 	return &common.Command{
-		Name: setQuotaCommandName,
+		Name: setCommandName,
 		Arguments: args,
 	}
 }
@@ -73,7 +73,7 @@ type GetCommand struct {
 
 func (cmd *GetCommand) Command() *common.Command {
 	return &common.Command{
-		Name: getQuotaCommandName,
+		Name: getCommandName,
 		Arguments: []interface{}{cmd.Root},
 	}
 }
@@ -100,7 +100,7 @@ func (cmd *GetRootCommand) Command() *common.Command {
 	mailbox, _ := utf7.Encoder.String(cmd.Mailbox)
 
 	return &common.Command{
-		Name: getQuotaRootCommandName,
+		Name: getRootCommandName,
 		Arguments: []interface{}{mailbox},
 	}
 }
