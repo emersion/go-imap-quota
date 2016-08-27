@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	responseName = "QUOTA"
+	responseName     = "QUOTA"
 	rootResponseName = "QUOTAROOT"
 )
 
@@ -106,7 +106,7 @@ func (r *Response) WriteTo(w *imap.Writer) (err error) {
 }
 
 type MailboxRoots struct {
-	Name string
+	Name  string
 	Roots []string
 }
 

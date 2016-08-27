@@ -8,14 +8,14 @@ import (
 )
 
 const (
-	setCommandName = "SETQUOTA"
-	getCommandName = "GETQUOTA"
+	setCommandName     = "SETQUOTA"
+	getCommandName     = "GETQUOTA"
 	getRootCommandName = "GETQUOTAROOT"
 )
 
 // The SETQUOTA command. See RFC 2087 section 4.1.
 type SetCommand struct {
-	Root string
+	Root      string
 	Resources map[string]uint32
 }
 
@@ -27,7 +27,7 @@ func (cmd *SetCommand) Command() *imap.Command {
 	}
 
 	return &imap.Command{
-		Name: setCommandName,
+		Name:      setCommandName,
 		Arguments: args,
 	}
 }
@@ -49,7 +49,7 @@ func (cmd *SetCommand) Parse(fields []interface{}) error {
 
 	var name string
 	for i, v := range resources {
-		if i % 2 == 0 {
+		if i%2 == 0 {
 			name, ok = v.(string)
 			if !ok {
 				return errors.New("Resource name must be a string")
@@ -73,7 +73,7 @@ type GetCommand struct {
 
 func (cmd *GetCommand) Command() *imap.Command {
 	return &imap.Command{
-		Name: getCommandName,
+		Name:      getCommandName,
 		Arguments: []interface{}{cmd.Root},
 	}
 }
@@ -100,7 +100,7 @@ func (cmd *GetRootCommand) Command() *imap.Command {
 	mailbox, _ := utf7.Encoder.String(cmd.Mailbox)
 
 	return &imap.Command{
-		Name: getRootCommandName,
+		Name:      getRootCommandName,
 		Arguments: []interface{}{mailbox},
 	}
 }

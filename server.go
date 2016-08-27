@@ -108,7 +108,7 @@ func (h *GetRootHandler) Handle(conn server.Conn) error {
 
 	rootRes := &RootResponse{
 		Mailbox: &MailboxRoots{
-			Name: h.Mailbox,
+			Name:  h.Mailbox,
 			Roots: roots,
 		},
 	}
@@ -130,18 +130,17 @@ func (h *GetRootHandler) Handle(conn server.Conn) error {
 	return conn.WriteResp(res)
 }
 
-type extension struct {}
+type extension struct{}
 
 func NewExtension() server.Extension {
 	return &extension{}
 }
 
-func (ext *extension) Capabilities(state imap.ConnState) []string {
-	var caps []string
-	if state & imap.AuthenticatedState != 0 {
-		caps = append(caps, Capability)
+func (ext *extension) Capabilities(c server.Conn) []string {
+	if c.Context().State&imap.AuthenticatedState != 0 {
+		return []string{Capability}
 	}
-	return caps
+	return nil
 }
 
 func (ext *extension) Command(name string) server.HandlerFactory {
