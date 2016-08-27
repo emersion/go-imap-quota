@@ -3,7 +3,7 @@ package quota
 import (
 	"errors"
 
-	"github.com/emersion/go-imap/common"
+	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/utf7"
 )
 
@@ -46,11 +46,11 @@ func (rs *Status) Parse(fields []interface{}) error {
 				return errors.New("Resource name must be a string")
 			}
 		} else if ii == 1 {
-			if usage, err = common.ParseNumber(v); err != nil {
+			if usage, err = imap.ParseNumber(v); err != nil {
 				return err
 			}
 		} else {
-			if limit, err = common.ParseNumber(v); err != nil {
+			if limit, err = imap.ParseNumber(v); err != nil {
 				return err
 			}
 			rs.Resources[name] = [2]uint32{usage, limit}
@@ -73,7 +73,7 @@ type Response struct {
 	Quotas chan *Status
 }
 
-func (r *Response) HandleFrom(hdlr common.RespHandler) (err error) {
+func (r *Response) HandleFrom(hdlr imap.RespHandler) (err error) {
 	for h := range hdlr {
 		fields, ok := h.AcceptNamedResp(responseName)
 		if !ok {
@@ -91,12 +91,12 @@ func (r *Response) HandleFrom(hdlr common.RespHandler) (err error) {
 	return
 }
 
-func (r *Response) WriteTo(w *common.Writer) (err error) {
+func (r *Response) WriteTo(w *imap.Writer) (err error) {
 	for quota := range r.Quotas {
 		fields := []interface{}{responseName}
 		fields = append(fields, quota.Format()...)
 
-		res := common.NewUntaggedResp(fields)
+		res := imap.NewUntaggedResp(fields)
 		if err = res.WriteTo(w); err != nil {
 			return
 		}
@@ -148,7 +148,7 @@ type RootResponse struct {
 	Mailbox *MailboxRoots
 }
 
-func (r *RootResponse) HandleFrom(hdlr common.RespHandler) error {
+func (r *RootResponse) HandleFrom(hdlr imap.RespHandler) error {
 	for h := range hdlr {
 		fields, ok := h.AcceptNamedResp(rootResponseName)
 		if !ok {
@@ -166,11 +166,11 @@ func (r *RootResponse) HandleFrom(hdlr common.RespHandler) error {
 	return nil
 }
 
-func (r *RootResponse) WriteTo(w *common.Writer) (err error) {
+func (r *RootResponse) WriteTo(w *imap.Writer) (err error) {
 	fields := []interface{}{rootResponseName}
 	fields = append(fields, r.Mailbox.Format()...)
 
-	res := common.NewUntaggedResp(fields)
+	res := imap.NewUntaggedResp(fields)
 	if err = res.WriteTo(w); err != nil {
 		return
 	}

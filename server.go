@@ -3,7 +3,7 @@ package quota
 import (
 	"errors"
 
-	"github.com/emersion/go-imap/common"
+	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/server"
 )
 
@@ -17,7 +17,7 @@ type User interface {
 
 	// SetQuota registers or updates a quota for this user with a set of resources
 	// and their limit. The resource limits for the named quota root are changed
-	// to be the specified limits.  Any previous resource limits for the named
+	// to be the specified limits. Any previous resource limits for the named
 	// quota root are discarded.
 	SetQuota(name string, resources map[string]uint32) error
 }
@@ -31,12 +31,12 @@ type SetHandler struct {
 	SetCommand
 }
 
-func (h *SetHandler) Handle(conn *server.Conn) error {
-	if conn.User == nil {
+func (h *SetHandler) Handle(conn server.Conn) error {
+	if conn.Context().User == nil {
 		return server.ErrNotAuthenticated
 	}
 
-	u, ok := conn.User.(User)
+	u, ok := conn.Context().User.(User)
 	if !ok {
 		return ErrUnsupportedBackend
 	}
@@ -54,12 +54,12 @@ type GetHandler struct {
 	GetCommand
 }
 
-func (h *GetHandler) Handle(conn *server.Conn) error {
-	if conn.User == nil {
+func (h *GetHandler) Handle(conn server.Conn) error {
+	if conn.Context().User == nil {
 		return server.ErrNotAuthenticated
 	}
 
-	u, ok := conn.User.(User)
+	u, ok := conn.Context().User.(User)
 	if !ok {
 		return ErrUnsupportedBackend
 	}
@@ -81,17 +81,17 @@ type GetRootHandler struct {
 	GetRootCommand
 }
 
-func (h *GetRootHandler) Handle(conn *server.Conn) error {
-	if conn.User == nil {
+func (h *GetRootHandler) Handle(conn server.Conn) error {
+	if conn.Context().User == nil {
 		return server.ErrNotAuthenticated
 	}
 
-	u, ok := conn.User.(User)
+	u, ok := conn.Context().User.(User)
 	if !ok {
 		return ErrUnsupportedBackend
 	}
 
-	mbox, err := conn.User.GetMailbox(h.Mailbox)
+	mbox, err := conn.Context().User.GetMailbox(h.Mailbox)
 	if err != nil {
 		return err
 	}
@@ -130,16 +130,35 @@ func (h *GetRootHandler) Handle(conn *server.Conn) error {
 	return conn.WriteResp(res)
 }
 
-func NewServer(s *server.Server) {
-	s.RegisterCapability(Capability, common.AuthenticatedState)
+type extension struct {}
 
-	s.RegisterCommand(setCommandName, func() server.Handler {
-		return &SetHandler{}
-	})
-	s.RegisterCommand(getCommandName, func() server.Handler {
-		return &GetHandler{}
-	})
-	s.RegisterCommand(getRootCommandName, func() server.Handler {
-		return &GetRootHandler{}
-	})
+func NewExtension() server.Extension {
+	return &extension{}
+}
+
+func (ext *extension) Capabilities(state imap.ConnState) []string {
+	var caps []string
+	if state & imap.AuthenticatedState != 0 {
+		caps = append(caps, Capability)
+	}
+	return caps
+}
+
+func (ext *extension) Command(name string) server.HandlerFactory {
+	switch name {
+	case setCommandName:
+		return func() server.Handler {
+			return &SetHandler{}
+		}
+	case getCommandName:
+		return func() server.Handler {
+			return &GetHandler{}
+		}
+	case getRootCommandName:
+		return func() server.Handler {
+			return &GetRootHandler{}
+		}
+	}
+
+	return nil
 }

@@ -3,7 +3,7 @@ package quota
 import (
 	"errors"
 
-	"github.com/emersion/go-imap/common"
+	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/utf7"
 )
 
@@ -19,14 +19,14 @@ type SetCommand struct {
 	Resources map[string]uint32
 }
 
-func (cmd *SetCommand) Command() *common.Command {
+func (cmd *SetCommand) Command() *imap.Command {
 	args := []interface{}{cmd.Root}
 
 	for k, v := range cmd.Resources {
 		args = append(args, k, v)
 	}
 
-	return &common.Command{
+	return &imap.Command{
 		Name: setCommandName,
 		Arguments: args,
 	}
@@ -56,7 +56,7 @@ func (cmd *SetCommand) Parse(fields []interface{}) error {
 			}
 		} else {
 			var err error
-			cmd.Resources[name], err = common.ParseNumber(v)
+			cmd.Resources[name], err = imap.ParseNumber(v)
 			if err != nil {
 				return err
 			}
@@ -71,8 +71,8 @@ type GetCommand struct {
 	Root string
 }
 
-func (cmd *GetCommand) Command() *common.Command {
-	return &common.Command{
+func (cmd *GetCommand) Command() *imap.Command {
+	return &imap.Command{
 		Name: getCommandName,
 		Arguments: []interface{}{cmd.Root},
 	}
@@ -96,10 +96,10 @@ type GetRootCommand struct {
 	Mailbox string
 }
 
-func (cmd *GetRootCommand) Command() *common.Command {
+func (cmd *GetRootCommand) Command() *imap.Command {
 	mailbox, _ := utf7.Encoder.String(cmd.Mailbox)
 
-	return &common.Command{
+	return &imap.Command{
 		Name: getRootCommandName,
 		Arguments: []interface{}{mailbox},
 	}
