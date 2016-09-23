@@ -41,8 +41,7 @@ func (rs *Status) Parse(fields []interface{}) error {
 	var err error
 	for i, v := range resources {
 		if ii := i % 3; ii == 0 {
-			name, ok = v.(string)
-			if !ok {
+			if name, ok = v.(string); !ok {
 				return errors.New("Resource name must be a string")
 			}
 		} else if ii == 1 {
@@ -62,9 +61,12 @@ func (rs *Status) Parse(fields []interface{}) error {
 
 func (rs *Status) Format() (fields []interface{}) {
 	fields = append(fields, rs.Name)
+
+	var resources []interface{}
 	for k, v := range rs.Resources {
-		fields = append(fields, k, v[0], v[1])
+		resources = append(resources, k, v[0], v[1])
 	}
+	fields = append(fields, resources)
 	return
 }
 
