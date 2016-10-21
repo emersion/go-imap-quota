@@ -14,7 +14,7 @@ func NewClient(c *client.Client) *Client {
 	return &Client{c: c}
 }
 
-// SupportsMove checks if the server supports the QUOTA extension.
+// SupportsQuota checks if the server supports the QUOTA extension.
 func (c *Client) SupportsQuota() bool {
 	return c.c.Caps[Capability]
 }
