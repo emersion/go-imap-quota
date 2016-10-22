@@ -1,6 +1,8 @@
 package quota
 
 import (
+	"fmt"
+
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 )
@@ -48,10 +50,7 @@ func (c *Client) GetQuota(root string) (*Status, error) {
 		Root: root,
 	}
 
-	ch := make(chan *Status, 1)
-	res := &Response{
-		Quotas: ch,
-	}
+	res := &Response{}
 
 	status, err := c.c.Execute(cmd, res)
 	if err != nil {
@@ -60,12 +59,15 @@ func (c *Client) GetQuota(root string) (*Status, error) {
 	if err := status.Err(); err != nil {
 		return nil, err
 	}
+	if len(res.Quotas) != 1 {
+		return nil, fmt.Errorf("Expected exactly one QUOTA response, got %v", len(res.Quotas))
+	}
 
-	return <-ch, nil
+	return res.Quotas[0], nil
 }
 
 // GetQuotaRoot returns the list of quota roots for a mailbox.
-func (c *Client) GetQuotaRoot(mailbox string) (*MailboxRoots, error) {
+func (c *Client) GetQuotaRoot(mailbox string) ([]*Status, error) {
 	if c.c.State & imap.AuthenticatedState == 0 {
 		return nil, client.ErrNotLoggedIn
 	}
@@ -74,7 +76,7 @@ func (c *Client) GetQuotaRoot(mailbox string) (*MailboxRoots, error) {
 		Mailbox: mailbox,
 	}
 
-	res := &RootResponse{}
+	res := &Response{}
 
 	status, err := c.c.Execute(cmd, res)
 	if err != nil {
@@ -84,5 +86,5 @@ func (c *Client) GetQuotaRoot(mailbox string) (*MailboxRoots, error) {
 		return nil, err
 	}
 
-	return res.Mailbox, nil
+	return res.Quotas, nil
 }

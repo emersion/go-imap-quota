@@ -69,11 +69,7 @@ func (h *GetHandler) Handle(conn server.Conn) error {
 		return err
 	}
 
-	ch := make(chan *Status, 1)
-	ch <- status
-	close(ch)
-
-	res := &Response{Quotas: ch}
+	res := &Response{Quotas: []*Status{status}}
 	return conn.WriteResp(res)
 }
 
@@ -116,17 +112,15 @@ func (h *GetRootHandler) Handle(conn server.Conn) error {
 		return err
 	}
 
-	ch := make(chan *Status, len(roots))
+	res := &Response{}
 	for _, name := range roots {
 		status, err := u.GetQuota(name)
 		if err != nil {
 			return err
 		}
-		ch <- status
+		res.Quotas = append(res.Quotas, status)
 	}
-	close(ch)
 
-	res := &Response{Quotas: ch}
 	return conn.WriteResp(res)
 }
 

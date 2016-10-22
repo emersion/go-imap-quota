@@ -72,10 +72,12 @@ func (rs *Status) Format() (fields []interface{}) {
 
 // A QUOTA response. See RFC 2087 section 5.1.
 type Response struct {
-	Quotas chan *Status
+	Quotas []*Status
 }
 
-func (r *Response) HandleFrom(hdlr imap.RespHandler) (err error) {
+func (r *Response) HandleFrom(hdlr imap.RespHandler) error {
+	r.Quotas = nil
+
 	for h := range hdlr {
 		fields, ok := h.AcceptNamedResp(responseName)
 		if !ok {
@@ -83,28 +85,28 @@ func (r *Response) HandleFrom(hdlr imap.RespHandler) (err error) {
 		}
 
 		quota := &Status{}
-		if err = quota.Parse(fields); err != nil {
-			return
+		if err := quota.Parse(fields); err != nil {
+			return err
 		}
 
-		r.Quotas <- quota
+		r.Quotas = append(r.Quotas, quota)
 	}
 
-	return
+	return nil
 }
 
-func (r *Response) WriteTo(w *imap.Writer) (err error) {
-	for quota := range r.Quotas {
+func (r *Response) WriteTo(w *imap.Writer) error {
+	for _, quota := range r.Quotas {
 		fields := []interface{}{responseName}
 		fields = append(fields, quota.Format()...)
 
 		res := imap.NewUntaggedResp(fields)
-		if err = res.WriteTo(w); err != nil {
-			return
+		if err := res.WriteTo(w); err != nil {
+			return err
 		}
 	}
 
-	return
+	return nil
 }
 
 type MailboxRoots struct {
