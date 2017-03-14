@@ -84,7 +84,7 @@ func (r *Response) HandleFrom(hdlr imap.RespHandler) error {
 			continue
 		}
 
-		quota := &Status{}
+		quota := &Status{Resources: make(map[string][2]uint32)}
 		if err := quota.Parse(fields); err != nil {
 			return err
 		}
