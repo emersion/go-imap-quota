@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/emersion/go-imap"
+	"github.com/emersion/go-imap/responses"
 	"github.com/emersion/go-imap/utf7"
 )
 
@@ -75,23 +76,18 @@ type Response struct {
 	Quotas []*Status
 }
 
-func (r *Response) HandleFrom(hdlr imap.RespHandler) error {
-	r.Quotas = nil
-
-	for h := range hdlr {
-		fields, ok := h.AcceptNamedResp(responseName)
-		if !ok {
-			continue
-		}
-
-		quota := &Status{Resources: make(map[string][2]uint32)}
-		if err := quota.Parse(fields); err != nil {
-			return err
-		}
-
-		r.Quotas = append(r.Quotas, quota)
+func (r *Response) Handle(resp imap.Resp) error {
+	name, fields, ok := imap.ParseNamedResp(resp)
+	if !ok || name != responseName {
+		return responses.ErrUnhandled
 	}
 
+	quota := &Status{Resources: make(map[string][2]uint32)}
+	if err := quota.Parse(fields); err != nil {
+		return err
+	}
+
+	r.Quotas = append(r.Quotas, quota)
 	return nil
 }
 
@@ -124,7 +120,7 @@ func (m *MailboxRoots) Parse(fields []interface{}) error {
 		return errors.New("Mailbox name must be a string")
 	}
 	var err error
-	if m.Name, err = utf7.Decoder.String(mailbox); err != nil {
+	if m.Name, err = utf7.Encoding.NewDecoder().String(mailbox); err != nil {
 		return err
 	}
 
@@ -152,21 +148,18 @@ type RootResponse struct {
 	Mailbox *MailboxRoots
 }
 
-func (r *RootResponse) HandleFrom(hdlr imap.RespHandler) error {
-	for h := range hdlr {
-		fields, ok := h.AcceptNamedResp(rootResponseName)
-		if !ok {
-			continue
-		}
-
-		m := &MailboxRoots{}
-		if err := m.Parse(fields); err != nil {
-			return err
-		}
-
-		r.Mailbox = m
+func (r *RootResponse) Handle(resp imap.Resp) error {
+	name, fields, ok := imap.ParseNamedResp(resp)
+	if !ok || name != rootResponseName {
+		return responses.ErrUnhandled
 	}
 
+	m := &MailboxRoots{}
+	if err := m.Parse(fields); err != nil {
+		return err
+	}
+
+	r.Mailbox = m
 	return nil
 }
 

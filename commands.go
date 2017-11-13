@@ -97,7 +97,7 @@ type GetRootCommand struct {
 }
 
 func (cmd *GetRootCommand) Command() *imap.Command {
-	mailbox, _ := utf7.Encoder.String(cmd.Mailbox)
+	mailbox, _ := utf7.Encoding.NewEncoder().String(cmd.Mailbox)
 
 	return &imap.Command{
 		Name:      getRootCommandName,
@@ -116,7 +116,7 @@ func (cmd *GetRootCommand) Parse(fields []interface{}) error {
 		return errors.New("Quota root must be a string")
 	}
 	var err error
-	if cmd.Mailbox, err = utf7.Decoder.String(mailbox); err != nil {
+	if cmd.Mailbox, err = utf7.Encoding.NewDecoder().String(mailbox); err != nil {
 		return err
 	}
 

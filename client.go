@@ -25,7 +25,7 @@ func (c *Client) SupportQuota() (bool, error) {
 // SetQuota changes the resource limits for the specified quota root. Any
 // previous resource limits for the named quota root are discarded.
 func (c *Client) SetQuota(root string, resources map[string]uint32) error {
-	if c.c.State&imap.AuthenticatedState == 0 {
+	if c.c.State()&imap.AuthenticatedState == 0 {
 		return client.ErrNotLoggedIn
 	}
 
@@ -43,7 +43,7 @@ func (c *Client) SetQuota(root string, resources map[string]uint32) error {
 
 // GetQuota returns a quota root's resource usage and limits.
 func (c *Client) GetQuota(root string) (*Status, error) {
-	if c.c.State&imap.AuthenticatedState == 0 {
+	if c.c.State()&imap.AuthenticatedState == 0 {
 		return nil, client.ErrNotLoggedIn
 	}
 
@@ -69,7 +69,7 @@ func (c *Client) GetQuota(root string) (*Status, error) {
 
 // GetQuotaRoot returns the list of quota roots for a mailbox.
 func (c *Client) GetQuotaRoot(mailbox string) ([]*Status, error) {
-	if c.c.State&imap.AuthenticatedState == 0 {
+	if c.c.State()&imap.AuthenticatedState == 0 {
 		return nil, client.ErrNotLoggedIn
 	}
 
