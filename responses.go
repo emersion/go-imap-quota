@@ -93,7 +93,7 @@ func (r *Response) Handle(resp imap.Resp) error {
 
 func (r *Response) WriteTo(w *imap.Writer) error {
 	for _, quota := range r.Quotas {
-		fields := []interface{}{responseName}
+		fields := []interface{}{imap.RawString(responseName)}
 		fields = append(fields, quota.Format()...)
 
 		res := imap.NewUntaggedResp(fields)
@@ -164,7 +164,7 @@ func (r *RootResponse) Handle(resp imap.Resp) error {
 }
 
 func (r *RootResponse) WriteTo(w *imap.Writer) (err error) {
-	fields := []interface{}{rootResponseName}
+	fields := []interface{}{imap.RawString(rootResponseName)}
 	fields = append(fields, r.Mailbox.Format()...)
 
 	res := imap.NewUntaggedResp(fields)
