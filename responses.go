@@ -65,7 +65,7 @@ func (rs *Status) Format() (fields []interface{}) {
 
 	var resources []interface{}
 	for k, v := range rs.Resources {
-		resources = append(resources, k, v[0], v[1])
+		resources = append(resources, imap.RawString(k), v[0], v[1])
 	}
 	fields = append(fields, resources)
 	return
